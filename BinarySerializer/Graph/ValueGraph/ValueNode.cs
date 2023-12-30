@@ -412,10 +412,17 @@ namespace BinarySerialization.Graph.ValueGraph
             throw new InvalidOperationException(message, e);
         }
 
+        private LazyBinarySerializationContext lbsc;
+
         internal LazyBinarySerializationContext CreateLazySerializationContext()
         {
-            var lazyContext = new Lazy<BinarySerializationContext>(CreateSerializationContext);
-            return new LazyBinarySerializationContext(lazyContext);
+            if (lbsc == null)
+            {
+                var lazyContext = new Lazy<BinarySerializationContext>(CreateSerializationContext);
+                lbsc = new LazyBinarySerializationContext(lazyContext);
+            }
+
+            return lbsc;
         }
 
         // this is internal only because of the weird custom subtype case.  If I can figure out a better
@@ -964,7 +971,7 @@ namespace BinarySerialization.Graph.ValueGraph
         {
             var parent = Parent;
             return new BinarySerializationContext(Value, parent?.Value, parent?.TypeNode.Type,
-                parent?.CreateSerializationContext(), TypeNode.MemberInfo);
+                parent?.CreateLazySerializationContext(), TypeNode.MemberInfo);
         }
     }
 }
